@@ -25,6 +25,15 @@ insertNodeBefore(struct nListNode *newNode, struct nListNode *curNode)
     newNode->next = curNode;
 }
 
+static void
+removeNode(struct nListNode *victim)
+{
+    victim->next->prev = victim->prev;
+    victim->prev->next = victim->next;
+    free(victim->data);
+    free(victim);
+}
+
 /* Allocate a new node and place the data into it; return NULL on failure */
 static struct nListNode        *
 allocNode(struct nList *l, void *dataIn)
@@ -59,6 +68,28 @@ nListInsert(enum nBool atHead, struct nList *l, void *dataIn)
         insertFirstItem(l, newNode);
     }
 
+    l->numElems++;
+    return nCodeSuccess;
+}
+
+static enum nErrorType
+removeFromList(struct nList *l, struct nListNode *victim, void *dataOut)
+{
+    struct nListNode   *newHead;
+
+    if (nListEmpty(l))
+        return nCodeEmpty;
+    memcpy(dataOut, l->head->data, l->elemSize);
+    if (nListSize(l) == 1) {
+        newHead = NULL;
+    } else if (l->head == victim) {
+        newHead = l->head->next;
+    } else {
+        newHead = l->head;
+    }
+
+    removeNode(victim);
+    l->numElems--;
     return nCodeSuccess;
 }
 
@@ -82,6 +113,18 @@ enum nErrorType
 nListInsertTail(struct nList *l, void *dataIn)
 {
     return nListInsert(nFalse, l, dataIn);
+}
+
+enum nErrorType
+nListRemoveHead(struct nList *l, void *dataOut)
+{
+    return removeFromList(l, l->head, dataOut);
+}
+
+enum nErrorType
+nListRemoveTail(struct nList *l, void *dataOut)
+{
+    return removeFromList(l, l->head->prev, dataOut);
 }
 
 enum nBool
