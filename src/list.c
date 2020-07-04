@@ -87,6 +87,7 @@ removeFromList(struct nList *l, struct nListNode *victim, void *dataOut)
     } else {
         newHead = l->head;
     }
+    l->head = newHead;
 
     removeNode(victim);
     l->numElems--;
