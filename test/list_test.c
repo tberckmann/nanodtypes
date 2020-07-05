@@ -92,6 +92,89 @@ nListSimpleAddRemove()
     return nListEmpty(&simpleList);
 }
 
+/* ForEach tests */
+
+static struct nList             feList;
+static unsigned int             numFeCalls;
+
+static enum nBool
+nListIterFuncRemoveFirstLast(void *data)
+{
+
+    int                 value = *(int *)data;
+
+    numFeCalls++;
+
+    if (value == 0 || value == 2)
+        return nTrue;
+    return nFalse;
+}
+
+static enum nBool
+nListIterFuncEmpty(void *data)
+{
+    numFeCalls++;
+    return nFalse;
+}
+
+static enum nBool
+nListForEachEmpty()
+{
+    nListInit(&feList, sizeof(int));
+    numFeCalls = 0;
+    nListForEach(&feList, nListIterFuncEmpty);
+    if (numFeCalls != 0)
+        return nFalse;
+    return nTrue;
+}
+
+static enum nBool
+nListForEachBlankSingle()
+{
+    int                 i = 0;
+    numFeCalls = 0;
+    nListInsertTail(&feList, &i);
+    nListForEach(&feList, nListIterFuncEmpty);
+    if (numFeCalls != 1)
+        return nFalse;
+    if (nListRemoveHead(&feList, &i))
+        return nFalse;
+    return nTrue;
+}
+
+static enum nBool
+nListForEachBlank()
+{
+    int                 i;
+    numFeCalls = 0;
+    for (i = 0; i < 3; i++) {
+        nListInsertHead(&feList, &i);
+    }
+    nListForEach(&feList, nListIterFuncEmpty);
+    if (numFeCalls != 3)
+        return nFalse;
+    if (nListSize(&feList) != 3)
+        return nFalse;
+    return nTrue;
+}
+
+static enum nBool
+nListForEachRemove()
+{
+    int                 outData;
+    numFeCalls = 0;
+
+    nListForEach(&feList, nListIterFuncRemoveFirstLast);
+
+    if (numFeCalls != 3)
+        return nFalse;
+    if (nListRemoveHead(&feList, &outData))
+        return nFalse;
+    if (outData != 1)
+        return nFalse;
+    return nListEmpty(&feList);
+}
+
 struct testInfo                 listTests[] = {
 
     /* Simple stack */
@@ -101,6 +184,12 @@ struct testInfo                 listTests[] = {
     {nListSimplePopExtra, "Removing too many elements is an error"},
     {nListAddRemoveTail, "Add single element to tail and remove from head"},
     {nListSimpleAddRemove, "Several insertions and removals"},
+
+    /* Foreach */
+    {nListForEachEmpty, "ForEach on empty list does nothing"},
+    {nListForEachBlankSingle, "ForEach on single-element list"},
+    {nListForEachBlank, "ForEach on multi-list"},
+    {nListForEachRemove, "ForEach remove first and last element"},
 
     {NULL, ""}
 

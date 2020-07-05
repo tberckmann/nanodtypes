@@ -74,11 +74,12 @@ nListInsert(enum nBool atHead, struct nList *l, void *dataIn)
 
 /* Remove any element; list must contain at least one element */
 static void
-removeFromList(struct nList *l, struct nListNode *victim, void *dataOut)
+removeFromList(enum nBool copy, struct nList *l, struct nListNode *victim, void *dataOut)
 {
     struct nListNode   *newHead;
 
-    memcpy(dataOut, victim->data, l->elemSize);
+    if (copy)
+        memcpy(dataOut, victim->data, l->elemSize);
     if (nListSize(l) == 1) {
         newHead = NULL;
     } else if (l->head == victim) {
@@ -119,7 +120,7 @@ nListRemoveHead(struct nList *l, void *dataOut)
 {
     if (nListEmpty(l))
         return nCodeEmpty;
-    removeFromList(l, l->head, dataOut);
+    removeFromList(nTrue, l, l->head, dataOut);
     return nCodeSuccess;
 }
 
@@ -128,7 +129,7 @@ nListRemoveTail(struct nList *l, void *dataOut)
 {
     if (nListEmpty(l))
         return nCodeEmpty;
-    removeFromList(l, l->head->prev, dataOut);
+    removeFromList(nTrue, l, l->head->prev, dataOut);
     return nCodeSuccess;
 }
 
@@ -144,4 +145,27 @@ size_t
 nListSize(struct nList *l)
 {
     return l->numElems;
+}
+
+void
+nListForEach(struct nList *l, nListIterFunc func)
+{
+
+    struct nListNode   *curIter = l->head, *nextIter = l->head, *final;
+    enum nBool          remove;
+
+    if (nListEmpty(l))
+        return;
+
+    final = l->head->prev;
+
+    do {
+        curIter = nextIter;
+        nextIter = nextIter->next;
+
+        remove = func(curIter->data);
+        if (remove)
+            removeFromList(nFalse, l, curIter, NULL);
+
+    } while (curIter != final);
 }
