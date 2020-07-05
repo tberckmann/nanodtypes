@@ -58,6 +58,40 @@ nListAddRemoveTail()
     return nTrue;
 }
 
+/* List must be empty at this point */
+static enum nBool
+nListSimpleAddRemove()
+{
+    char                i, outData;
+
+    for (i = 1; i <= 4; i++) {
+        nListInsertHead(&simpleList, &i);       /* H 4 3 2 1 T */
+    }
+    if (nListRemoveHead(&simpleList, &outData)) /* H 3 2 1 T */
+        return nFalse;
+    if (outData != 4)
+        return nFalse;
+    if (nListRemoveTail(&simpleList, &outData)) /* H 3 2 T */
+        return nFalse;
+    if (outData != 1)
+        return nFalse;
+    i = 5;
+    nListInsertTail(&simpleList, &i);   /* H 3 2 5 T */
+    if (nListRemoveHead(&simpleList, &outData)) /* H 2 5 T */
+        return nFalse;
+    if (outData != 3)
+        return nFalse;
+    if (nListRemoveHead(&simpleList, &outData)) /* H 5 T */
+        return nFalse;
+    if (outData != 2)
+        return nFalse;
+    if (nListRemoveHead(&simpleList, &outData)) /* H T */
+        return nFalse;
+    if (outData != 5)
+        return nFalse;
+    return nListEmpty(&simpleList);
+}
+
 struct testInfo                 listTests[] = {
 
     /* Simple stack */
@@ -66,6 +100,7 @@ struct testInfo                 listTests[] = {
     {nListAddRemoveHead, "Add single element to head and remove from tail"},
     {nListSimplePopExtra, "Removing too many elements is an error"},
     {nListAddRemoveTail, "Add single element to tail and remove from head"},
+    {nListSimpleAddRemove, "Several insertions and removals"},
 
     {NULL, ""}
 

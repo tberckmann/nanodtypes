@@ -78,7 +78,7 @@ removeFromList(struct nList *l, struct nListNode *victim, void *dataOut)
 {
     struct nListNode   *newHead;
 
-    memcpy(dataOut, l->head->data, l->elemSize);
+    memcpy(dataOut, victim->data, l->elemSize);
     if (nListSize(l) == 1) {
         newHead = NULL;
     } else if (l->head == victim) {
