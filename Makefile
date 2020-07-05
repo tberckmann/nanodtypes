@@ -1,4 +1,9 @@
 
+# Usage:
+
+# make                     (build library and tests)
+# make DEBUG=true          (build library and tests with debug flags)
+
 CC := gcc
 OBJDIR := obj
 SRCDIR := src
@@ -7,11 +12,16 @@ LIBDIR := lib
 BINDIR := bin
 TGTNAME := nanodtypes
 INCLUDES := -Iinclude
+DEBUG := false
 
 .DEFAULT_GOAL := $(BINDIR)/test_all
 
 CFLAGS += $(INCLUDES)
 CFLAGS += -Wall
+
+ifeq ($(DEBUG), true)
+CFLAGS += -g
+endif
 
 OBJS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(wildcard $(SRCDIR)/*.c))
 TEST_OBJS = $(patsubst $(TSTDIR)/%.c,$(OBJDIR)/%.o,$(wildcard $(TSTDIR)/*.c))
