@@ -32,6 +32,17 @@ nListAddRemoveHead()
     return nTrue;
 }
 
+/* List must be empty */
+static enum nBool
+nListSimplePopExtra()
+{
+    char                dummyData;
+    if (nListRemoveTail(&simpleList, &dummyData))
+        return nTrue;
+    else
+        return nFalse;
+}
+
 /* Depends on simpleEmptyCheck */
 static enum nBool
 nListAddRemoveTail()
@@ -53,6 +64,7 @@ struct testInfo                 listTests[] = {
     {nListSimpleEmptyCheck, "Simple list reads initially empty"},
     {nListSimpleEmptySizeCheck, "Simple list size reads initially zero"},
     {nListAddRemoveHead, "Add single element to head and remove from tail"},
+    {nListSimplePopExtra, "Removing too many elements is an error"},
     {nListAddRemoveTail, "Add single element to tail and remove from head"},
 
     {NULL, ""}

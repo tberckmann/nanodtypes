@@ -72,13 +72,12 @@ nListInsert(enum nBool atHead, struct nList *l, void *dataIn)
     return nCodeSuccess;
 }
 
-static enum nErrorType
+/* Remove any element; list must contain at least one element */
+static void
 removeFromList(struct nList *l, struct nListNode *victim, void *dataOut)
 {
     struct nListNode   *newHead;
 
-    if (nListEmpty(l))
-        return nCodeEmpty;
     memcpy(dataOut, l->head->data, l->elemSize);
     if (nListSize(l) == 1) {
         newHead = NULL;
@@ -91,7 +90,6 @@ removeFromList(struct nList *l, struct nListNode *victim, void *dataOut)
 
     removeNode(victim);
     l->numElems--;
-    return nCodeSuccess;
 }
 
 /* API functions */
@@ -119,13 +117,19 @@ nListInsertTail(struct nList *l, void *dataIn)
 enum nErrorType
 nListRemoveHead(struct nList *l, void *dataOut)
 {
-    return removeFromList(l, l->head, dataOut);
+    if (nListEmpty(l))
+        return nCodeEmpty;
+    removeFromList(l, l->head, dataOut);
+    return nCodeSuccess;
 }
 
 enum nErrorType
 nListRemoveTail(struct nList *l, void *dataOut)
 {
-    return removeFromList(l, l->head->prev, dataOut);
+    if (nListEmpty(l))
+        return nCodeEmpty;
+    removeFromList(l, l->head->prev, dataOut);
+    return nCodeSuccess;
 }
 
 enum nBool
