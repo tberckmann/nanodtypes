@@ -23,7 +23,7 @@ COV_MARK := cov
 .PHONY : clean coverage
 
 CFLAGS += $(INCLUDES)
-CFLAGS += -Wall
+CFLAGS += -Wall -ansi -Wpedantic -Werror
 
 ifeq ($(DEBUG), true)
 CFLAGS += -g

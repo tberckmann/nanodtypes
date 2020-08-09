@@ -147,7 +147,6 @@ complexCreate()
 static enum nBool
 complexAdd()
 {
-    enum nErrorType     ret;
     int                 modVal = 17;
     int                 i;
     char                inDataBuf[CMPLX_ELEM_SIZE];
@@ -156,10 +155,10 @@ complexAdd()
     }
     for (i = 0; i < CMPLX_NUM_ELEM + 1; i++) {
         inDataBuf[0] = i % modVal;
-        ret = nStackPush(&complexStack, inDataBuf);
+        nStackPush(&complexStack, inDataBuf);
     }
     for (i = CMPLX_NUM_ELEM - 1; i >= 0; i--) {
-        ret = nStackPop(&complexStack, inDataBuf);
+        nStackPop(&complexStack, inDataBuf);
         if (inDataBuf[0] != i % modVal)
             return nFalse;
     }

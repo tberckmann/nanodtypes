@@ -60,4 +60,6 @@ main()
 
     printf("\n");
     printMsg("Final result", finalResult);
+
+    return 0;
 }
