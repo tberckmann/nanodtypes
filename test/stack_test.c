@@ -105,10 +105,11 @@ static enum nBool
 simplePopExtra()
 {
     char                dummyData;
-    if (nStackPop(&simpleStack, &dummyData))
-        return nTrue;
-    else
+    if (nCodeEmpty != nStackPop(&simpleStack, &dummyData))
         return nFalse;
+    if (nCodeEmpty != nStackPeek(&simpleStack, &dummyData))
+        return nFalse;
+    return nTrue;
 }
 
 static enum nBool

@@ -37,10 +37,11 @@ static enum nBool
 nListSimplePopExtra()
 {
     char                dummyData;
-    if (nListRemoveTail(&simpleList, &dummyData))
-        return nTrue;
-    else
+    if (nCodeEmpty != nListRemoveTail(&simpleList, &dummyData))
         return nFalse;
+    if (nCodeEmpty != nListRemoveHead(&simpleList, &dummyData))
+        return nFalse;
+    return nTrue;
 }
 
 /* Depends on simpleEmptyCheck */

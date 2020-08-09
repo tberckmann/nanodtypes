@@ -5,7 +5,7 @@
 
 gcov=${1-gcov}
 covdir=${2-coverage}
-threshold_pct=${3-90} # Default coverage percentage if not passed on command line
+threshold_pct=${3-93} # Default coverage percentage if not passed on command line
 final_result=0
 
 echo "Code coverage summary"
