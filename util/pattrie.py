@@ -1,4 +1,8 @@
 
+import string
+import random
+import os
+
 # Prototyping code for Patricia trie
 
 class Link:
@@ -14,6 +18,13 @@ class Link:
     def bit_set(bit_off, key):
         """Check if the bit offset in a given key is set to 1"""
         return (key >> (4 - bit_off)) & 1
+
+    @staticmethod
+    def _find_bit_diff(key1, key2):
+        """Find first bit difference between two keys"""
+        for bit in range(5):
+            if Link.bit_set(bit, key1) != Link.bit_set(bit, key2):
+                return bit
 
     # Basic operations on the trie
 
@@ -66,7 +77,14 @@ class Link:
             if self.bit_set(self.bit, new_key):
                 self.r = self.r.insert_step(diff_bit, diff_key, new_key, new_item, self.bit)
             else:
-                self.l = self.l.insert_step(diff_bit, diff_key, new_key, new_item, self.bit)
+                if self.l:
+                    self.l = self.l.insert_step(diff_bit, diff_key, new_key, new_item, self.bit)
+                else:
+                    new_bit_diff = self._find_bit_diff(new_key, 0)
+                    new_link = Link(key=new_key, item=new_item, bit=new_bit_diff)
+                    new_link.r = new_link
+                    new_link.l = None
+                    self.l = new_link
             return self
 
     @staticmethod
@@ -140,20 +158,39 @@ class Link:
             else:
                 self.r.print_subtrie(indent + 1)
 
-    def graph_subtrie(self):
-        """Print the entire trie, recursively, as DOT commands, one edge per line"""
+    def graph_subtrie(self, tok_list=None):
+        """Return a string representation of trie as DOT commands, one edge per line"""
+
+        if tok_list is None:
+            local_tok_list = []
+        else:
+            local_tok_list = tok_list
+
         if self.l:
             if self.l.bit <= self.bit:
-                print(self._dispname(), "->", self.l._dispname(), "[style=dotted, tailport=sw, headport=s];")
+                my_toks = [self._dispname(), "->", self.l._dispname(),
+                    "[style=dotted, tailport=sw, headport=s];"]
+                local_tok_list.append(my_toks)
             else:
-                print(self._dispname(), "->", self.l._dispname(), "[tailport=sw];")
-                self.l.graph_subtrie()
+                my_toks = [self._dispname(), "->", self.l._dispname(), "[tailport=sw];"]
+                local_tok_list.append(my_toks)
+                self.l.graph_subtrie(local_tok_list)
         if self.r:
             if self.r.bit <= self.bit:
-                print(self._dispname(), "->", self.r._dispname(), "[style=dotted, tailport=se, headport=s];")
+                my_toks = [self._dispname(), "->", self.r._dispname(),
+                    "[style=dotted, tailport=se, headport=s];"]
+                local_tok_list.append(my_toks)
             else:
-                print(self._dispname(), "->", self.r._dispname(), "[tailport=se];")
-                self.r.graph_subtrie()
+                my_toks = [self._dispname(), "->", self.r._dispname(), "[tailport=se];"]
+                local_tok_list.append(my_toks)
+                self.r.graph_subtrie(local_tok_list)
+
+        if tok_list is None:
+            final_string = ""
+            for tok_line in local_tok_list:
+                next_string_line = " ".join(tok_line) + "\n"
+                final_string += next_string_line
+            return final_string
 
 class PatriciaTrie:
     """Complete Patricia trie"""
@@ -166,15 +203,19 @@ class PatriciaTrie:
         if self.head:
             self.head.print_subtrie()
 
-    def print_graph(self):
+    def get_graph(self):
         """Print a graphical representation of the trie in the DOT language"""
-        print("digraph G {")
+        out = "digraph G {\n"
         if self.head:
-            self.head.graph_subtrie()
-        print("}")
+            out += self.head.graph_subtrie()
+        out += "}\n"
+        return out
 
     def lookup_key(self, key):
         """Look up a given key and return its value; if it doesn't exist, return None"""
+        if self.head is None:
+            return None
+
         closest_link, parent_link = self.head.lookup_step(key, None)
 
         if closest_link.key == key:
@@ -182,20 +223,13 @@ class PatriciaTrie:
         else:
             return None
 
-    @staticmethod
-    def _find_bit_diff(key1, key2):
-        """Find first bit difference between two keys"""
-        for bit in range(5):
-            if Link.bit_set(bit, key1) != Link.bit_set(bit, key2):
-                return bit
-
     def insert_key(self, new_key, new_item):
         """Insert a new key-value pair into the trie
 
         If it already exists, do nothing
         """
         if self.head is None:
-            bit_diff = self._find_bit_diff(new_key, 0)
+            bit_diff = Link._find_bit_diff(new_key, 0)
             start_link = Link(new_key, new_item, bit_diff)
             start_link.r = start_link
             self.head = start_link
@@ -203,11 +237,14 @@ class PatriciaTrie:
             closest_link, parent_link = self.head.lookup_step(new_key, None)
             if closest_link.key == new_key:
                 return
-            tgt_bit = self._find_bit_diff(new_key, closest_link.key)
+            tgt_bit = Link._find_bit_diff(new_key, closest_link.key)
             self.head = self.head.insert_step(tgt_bit, closest_link.key, new_key, new_item, -1)
 
-
     def remove_key(self, victim_key):
+        """Remove a key from the trie
+
+        If it doesn't exist, do nothing.
+        """
         closest_link, parent_link = self.head.lookup_step(victim_key, None)
 
         if closest_link.key != victim_key:
@@ -230,24 +267,79 @@ class PatriciaTrie:
             Link.link_swap(closest_link, parent_link, grandparent_link)
             self.head.reduce_link(parent_link, victim_key)
 
+class TestPatriciaTrie:
 
-def key_from_let(let):
-    return ord(let) & 0x1F
+    @staticmethod
+    def _key_from_let(let):
+        return ord(let) & 0x1F
 
-# Finished trie
+    @staticmethod
+    def binkey_from_let(let):
+        """String representation in binary"""
+        the_key = TestPatriciaTrie._key_from_let(let)
+        return "{:0>5.5}".format(bin(the_key)[2:])
 
-built_trie = PatriciaTrie()
+    def __init__(self):
+        self.trie = PatriciaTrie()
+        self.not_in = set(string.ascii_uppercase) # Letters not in the trie
+        self.is_in = set() # Letters in the trie
+        self.let_universe = set(string.ascii_uppercase) # All possible letters
 
-built_trie.insert_key(key_from_let("A"), "A")
-built_trie.insert_key(key_from_let("S"), "S")
-built_trie.insert_key(key_from_let("E"), "E")
-built_trie.insert_key(key_from_let("R"), "R")
-built_trie.insert_key(key_from_let("C"), "C")
-built_trie.insert_key(key_from_let("H"), "H")
-built_trie.insert_key(key_from_let("I"), "I")
-built_trie.insert_key(key_from_let("N"), "N")
+    def _integrity_check(self):
+        for let in self.not_in:
+            key = self._key_from_let(let)
+            assert self.trie.lookup_key(key) is None
+        for let in self.is_in:
+            key = self._key_from_let(let)
+            assert self.trie.lookup_key(key) == let
 
-built_trie.remove_key(key_from_let("S"))
-built_trie.remove_key(key_from_let("A"))
+    def insert_key(self, new_let):
+        """Insert a letter into the trie with integrity check"""
+        assert new_let in self.let_universe
+        new_key = self._key_from_let(new_let)
+        self.trie.insert_key(new_key, new_let)
+        self.not_in.remove(new_let)
+        self.is_in.add(new_let)
+        self._integrity_check()
+        #self._dump_graph("dumped/ins_" + new_let)
 
-built_trie.print_graph()
+    def remove_key(self, victim_let):
+        """Remove a letter into the trie with integrity check"""
+        victim_key = self._key_from_let(victim_let)
+        self.trie.remove_key(victim_key)
+        self.not_in.add(victim_let)
+        self.is_in.remove(victim_let)
+        self._integrity_check()
+
+    def _dump_graph(self, filename):
+        with open(filename + ".gv", "w") as f_h:
+            f_h.write(self.trie.get_graph())
+
+        os.system("dot -Tps %s.gv -o %s.ps" % (filename,filename))
+
+def book_sequence():
+    """Build the tree according to the book"""
+    test_trie = TestPatriciaTrie()
+    let_sequence = ["A","S","E","R","C","H","I","N"]
+    for let in let_sequence:
+        test_trie.insert_key(let)
+
+def rand_sequence():
+
+    test_trie = TestPatriciaTrie()
+
+    add_sequence = list(string.ascii_uppercase)
+    rem_sequence = list(string.ascii_uppercase)
+
+    random.shuffle(add_sequence)
+    random.shuffle(rem_sequence)
+
+    for let in add_sequence:
+        print("Inserting", let, test_trie.binkey_from_let(let))
+        test_trie.insert_key(let)
+
+    for let in rem_sequence:
+        print("Removing", let)
+        test_trie.remove_key(let)
+
+rand_sequence()
