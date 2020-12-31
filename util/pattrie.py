@@ -17,6 +17,8 @@ class Link:
     @staticmethod
     def bit_set(bit_off, key):
         """Check if the bit offset in a given key is set to 1"""
+        if bit_off == 5:
+            return True
         return (key >> (4 - bit_off)) & 1
 
     @staticmethod
@@ -25,6 +27,7 @@ class Link:
         for bit in range(5):
             if Link.bit_set(bit, key1) != Link.bit_set(bit, key2):
                 return bit
+        return 5
 
     # Basic operations on the trie
 
@@ -136,7 +139,7 @@ class Link:
 
     def _dispname(self):
         """Return the display label for this link"""
-        return str(self.item) + str(self.bit)
+        return '"' + str(self.item) + str(self.bit) + '"'
 
     def _print_terminal(self, indent):
         """Print a leaf node on a single line, with indent"""
@@ -270,6 +273,10 @@ class PatriciaTrie:
 class TestPatriciaTrie:
 
     @staticmethod
+    def let_universe():
+        return list(string.ascii_uppercase + " ")
+
+    @staticmethod
     def _key_from_let(let):
         return ord(let) & 0x1F
 
@@ -281,9 +288,9 @@ class TestPatriciaTrie:
 
     def __init__(self):
         self.trie = PatriciaTrie()
-        self.not_in = set(string.ascii_uppercase) # Letters not in the trie
+        self.not_in = set(TestPatriciaTrie.let_universe()) # Letters not in the trie
         self.is_in = set() # Letters in the trie
-        self.let_universe = set(string.ascii_uppercase) # All possible letters
+        self.let_universe = set(TestPatriciaTrie.let_universe()) # All possible letters
 
     def _integrity_check(self):
         for let in self.not_in:
@@ -300,8 +307,8 @@ class TestPatriciaTrie:
         self.trie.insert_key(new_key, new_let)
         self.not_in.remove(new_let)
         self.is_in.add(new_let)
-        self._integrity_check()
         #self._dump_graph("dumped/ins_" + new_let)
+        self._integrity_check()
 
     def remove_key(self, victim_let):
         """Remove a letter into the trie with integrity check"""
@@ -315,7 +322,7 @@ class TestPatriciaTrie:
         with open(filename + ".gv", "w") as f_h:
             f_h.write(self.trie.get_graph())
 
-        os.system("dot -Tps %s.gv -o %s.ps" % (filename,filename))
+        os.system("dot -Tps '%s.gv' -o '%s.ps'" % (filename,filename))
 
 def book_sequence():
     """Build the tree according to the book"""
@@ -328,8 +335,8 @@ def rand_sequence():
 
     test_trie = TestPatriciaTrie()
 
-    add_sequence = list(string.ascii_uppercase)
-    rem_sequence = list(string.ascii_uppercase)
+    add_sequence = TestPatriciaTrie.let_universe()
+    rem_sequence = TestPatriciaTrie.let_universe()
 
     random.shuffle(add_sequence)
     random.shuffle(rem_sequence)
