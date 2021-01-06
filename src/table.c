@@ -172,6 +172,7 @@ nTableInsert(struct nTable *t, const void *key, const void *dataIn)
         t->head = newNode;
     }
 
+    t->numElems++;
     return nCodeSuccess;
 }
 
@@ -190,4 +191,16 @@ nTablePeek(struct nTable *tab, const void *key, void *dataOut)
         memcpy(dataOut, closestOut->value, tab->valueSize);
         return nCodeSuccess;
     }
+}
+
+enum nBool
+nTableEmpty(const struct nTable *t)
+{
+    return nTableSize(t) == 0 ? nTrue : nFalse;
+}
+
+size_t
+nTableSize(const struct nTable *t)
+{
+    return t->numElems;
 }

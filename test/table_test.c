@@ -10,6 +10,8 @@ simpleAbsent()
 {
     char                dataOut = 'X';
     nTableInit(&simpleTable, sizeof(char), sizeof(char));
+    if (!nTableEmpty(&simpleTable))
+        return nFalse;
     if (nCodeNotFound != nTablePeek(&simpleTable, skeys, &dataOut))
         return nFalse;
     if (dataOut != 'X')
@@ -35,14 +37,19 @@ tripleInsert()
 {
     int                 elem;
     char                dataOut;
+    size_t              expectedSize = 1;
 
     for (elem = 0; elem < 3; elem++) {
         dataOut = 'X';
+        if (nTablePeek(&simpleTable, skeys + elem, &dataOut))
+            expectedSize++;
         if (nTableInsert(&simpleTable, skeys + elem, svalues + elem))
             return nFalse;
         if (nTablePeek(&simpleTable, skeys + elem, &dataOut))
             return nFalse;
         if (dataOut != svalues[elem])
+            return nFalse;
+        if (nTableSize(&simpleTable) != expectedSize)
             return nFalse;
     }
     for (elem = 0; elem < 3; elem++) {

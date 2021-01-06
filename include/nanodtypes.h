@@ -71,7 +71,7 @@ struct nTableNode;
 
 struct nTable {
     struct nTableNode *head;
-    unsigned int numElems;
+    size_t numElems;
     size_t keySize;
     size_t valueSize;
     char *nullKey;
