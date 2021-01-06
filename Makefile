@@ -6,8 +6,8 @@
 # make coverage            (build tests and check code coverage)
 # make clean               (remove all artifacts)
 
-CC := gnu-gcc
-GCOV := gnu-gcov
+CC := gcc-mp-9
+GCOV := gcov-mp-9
 OBJDIR := obj
 SRCDIR := src
 TSTDIR := test
@@ -71,5 +71,5 @@ coverage: $(BINDIR)/test_$(COV_MARK)
 
 clean:
 	rm -f $(OBJDIR)/*.o $(OBJDIR)/*.gcda $(OBJDIR)/*.gcno
-	rm -f $(LIBDIR)/*.a $(BINDIR)/test_all
+	rm -f $(LIBDIR)/*.a $(BINDIR)/test_all  $(BINDIR)/test_$(COV_MARK)
 	rm -f $(COVDIR)/*.gcov
