@@ -1,0 +1,95 @@
+#include "nanodtypes.h"
+#include "test.h"
+
+struct nTable                   simpleTable;
+const char                      skeys[] = {'A', 'B', 'C'};
+const char                      svalues[] = {'1', '2', '3'};
+
+static enum nBool
+simpleAbsent()
+{
+    char                dataOut = 'X';
+    nTableInit(&simpleTable, sizeof(char), sizeof(char));
+    if (nCodeNotFound != nTablePeek(&simpleTable, skeys, &dataOut))
+        return nFalse;
+    if (dataOut != 'X')
+        return nFalse;
+    return nTrue;
+}
+
+static enum nBool
+simpleInsert()
+{
+    char                dataOut = 'X';
+    if (nTableInsert(&simpleTable, skeys + 1, svalues + 1))
+        return nFalse;
+    if (nTablePeek(&simpleTable, skeys + 1, &dataOut))
+        return nFalse;
+    if (dataOut != svalues[1])
+        return nFalse;
+    return nTrue;
+}
+
+static enum nBool
+tripleInsert()
+{
+    int                 elem;
+    char                dataOut;
+
+    for (elem = 0; elem < 3; elem++) {
+        dataOut = 'X';
+        if (nTableInsert(&simpleTable, skeys + elem, svalues + elem))
+            return nFalse;
+        if (nTablePeek(&simpleTable, skeys + elem, &dataOut))
+            return nFalse;
+        if (dataOut != svalues[elem])
+            return nFalse;
+    }
+    for (elem = 0; elem < 3; elem++) {
+        dataOut = 'X';
+        if (nTablePeek(&simpleTable, skeys + elem, &dataOut))
+            return nFalse;
+        if (dataOut != svalues[elem])
+            return nFalse;
+    }
+
+    return nTrue;
+}
+
+static enum nBool
+addLeft()
+{
+
+    struct nTable       leftTable;
+    const short         keys[] = {2, 1, 0, -1};
+    const short         vals[] = {102, 101, 100, -100};
+    int                 kIdx;
+    short               dataOut;
+
+    nTableInit(&leftTable, sizeof(short), sizeof(short));
+    for (kIdx = 0; kIdx < 3; kIdx++) {
+
+        dataOut = 555;
+        if (nTableInsert(&leftTable, keys + kIdx, vals + kIdx))
+            return nFalse;
+        if (nTablePeek(&leftTable, keys + kIdx, &dataOut))
+            return nFalse;
+        if (dataOut != vals[kIdx])
+            return nFalse;
+        if (nCodeNotFound != nTablePeek(&simpleTable, keys + 2, &dataOut))
+            return nFalse;
+    }
+    return nTrue;
+}
+
+struct testInfo                 tableTests[] = {
+
+    /* Simple table */
+    {simpleAbsent, "Searching for absent element fails"},
+    {simpleInsert, "Add and check one element succeeds"},
+    {tripleInsert, "Add and check three elements succeeds"},
+    {addLeft, "Adding zero element to the left succeeds"},
+
+    {NULL, ""}
+
+};

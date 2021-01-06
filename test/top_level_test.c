@@ -2,7 +2,7 @@
 
 #include "test.h"
 
-extern struct testInfo          stackTests[], listTests[];
+extern struct testInfo          stackTests[], listTests[], tableTests[];
 
 struct {
     struct testInfo                *testDefs;
@@ -13,6 +13,9 @@ struct {
     },
     {
         listTests, "List Tests"
+    },
+    {
+        tableTests, "Table Tests"
     },
 
     {

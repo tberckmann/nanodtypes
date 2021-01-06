@@ -9,7 +9,8 @@ enum nErrorType {
     nCodeNoSpace,
     nCodeBadInput,
     nCodeEmpty,
-    nCodeFull
+    nCodeFull,
+    nCodeNotFound
 };
 
 enum nBool {
@@ -63,5 +64,30 @@ enum nErrorType nListRemoveTail(struct nList *l, void *dataOut);
 void nListForEach(struct nList *l, nListIterFunc func);
 enum nBool nListEmpty(struct nList *l);
 size_t nListSize(struct nList *l);
+
+/*** nanoTable types ***/
+
+struct nTableNode;
+
+struct nTable {
+    struct nTableNode *head;
+    unsigned int numElems;
+    size_t keySize;
+    size_t valueSize;
+    char *nullKey;
+};
+
+typedef enum nBool (*nTableIterFunc) (void *, void *);
+
+/*** nanoTable functions ***/
+
+void nTableInit(struct nTable *t, size_t keySize, size_t valueSize);
+void nTableDestroy(struct nTable *t);
+enum nErrorType nTableInsert(struct nTable *t, const void *key, const void *dataIn);
+enum nErrorType nTablePeek(struct nTable *t, const void *key, void *dataOut);
+enum nErrorType nTableRemove(struct nTable *t, const void *key);
+void nTableForEach(const struct nTable *t, nTableIterFunc func);
+enum nBool nTableEmpty(const struct nTable *t);
+size_t nTableSize(const struct nTable *t);
 
 #endif

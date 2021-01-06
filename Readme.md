@@ -12,6 +12,7 @@ ND consists of the following data structures:
 
 - **nStack**, a no-frills stack abstraction
 - **nList**, a circular, doubly-linked list
+- **nTable**, a Patricia trie which stores key-value pairs
 
 ## Features
 
