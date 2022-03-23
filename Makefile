@@ -6,8 +6,9 @@
 # make coverage            (build tests and check code coverage)
 # make clean               (remove all artifacts)
 
-CC := gcc-mp-9
-GCOV := gcov-mp-9
+CC := gcc
+GCOV := gcov
+
 OBJDIR := obj
 SRCDIR := src
 TSTDIR := test
@@ -23,7 +24,7 @@ COV_MARK := cov
 .PHONY : clean coverage
 
 CFLAGS += $(INCLUDES)
-CFLAGS += -Wall -ansi -Wpedantic -Werror
+CFLAGS += -Wall -Wpedantic -Werror
 
 ifeq ($(DEBUG), true)
 CFLAGS += -g

@@ -17,7 +17,7 @@ fi
 
 for cov_file in `ls obj/*.gcda`
 do
-    if ! $gcov -k -m $cov_file | awk '
+    if ! $gcov $cov_file | awk '
         /^File/ {
             sub(/[^\/]*\//, "") # Strip up to and including forward slash
             sub(/'"'"'/,"") # Strip single quote
