@@ -17,7 +17,7 @@
 
 # This example catches duplicate Signed-off-by lines.
 
-allowed_types='feat|docs|util|build|chore|style|refactor|test|perf|fix'
+allowed_types='feat|docs|util|build|chore|style|refactor|test|perf|fix|merge'
 
 if ! awk '
     !/^('$allowed_types')(\([a-z]+\))?: [a-z]/ {exit 1}
