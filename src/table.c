@@ -30,7 +30,14 @@ errN:
     free(newNode);
 err:
     return NULL;
+}
 
+static void
+freeNode(struct nTableNode *node)
+{
+    free(node->key);
+    free(node->value);
+    free(node);
 }
 
 static enum nBool
@@ -137,6 +144,50 @@ insert_step(struct nTable *t, struct nTableNode *node, short diffBit,
     }
 }
 
+static void
+linkSwap(struct nTable *t, struct nTableNode *grandchildLink, struct nTableNode *childLink,
+         struct nTableNode *parentLink)
+{
+    memcpy(grandchildLink->key, childLink->key, t->keySize);
+    memcpy(grandchildLink->value, childLink->value, t->valueSize);
+
+    if (parentLink->l == childLink)
+        parentLink->l = grandchildLink;
+    else
+        parentLink->r = grandchildLink;
+
+    if (childLink->r == grandchildLink)
+        childLink->r = NULL;
+    else
+        childLink->l = NULL;
+}
+
+static void
+reduceLink(struct nTableNode *node, struct nTableNode *victimLink,
+           const void *targetKey)
+{
+    struct nTableNode  *newChild;
+
+    if (victimLink->l)
+        newChild = victimLink->l;
+    else
+        newChild = victimLink->r;
+
+    if (node->l == victimLink) {
+        node->l = newChild;
+        freeNode(victimLink);
+        return;
+    } else if (node->r == victimLink) {
+        node->r = newChild;
+        freeNode(victimLink);
+        return;
+    }
+    if (bitSet(node->bit, targetKey))
+        reduceLink(node->r, victimLink, targetKey);
+    else
+        reduceLink(node->l, victimLink, targetKey);
+}
+
 /* API functions */
 
 void
@@ -173,6 +224,44 @@ nTableInsert(struct nTable *t, const void *key, const void *dataIn)
     }
 
     t->numElems++;
+    return nCodeSuccess;
+}
+
+enum nErrorType
+nTableRemove(struct nTable *t, const void *key)
+{
+    struct nTableNode  *closestOut, *parentOut, *parentOut2, *grandParentOut;
+
+    if (!t->head)
+        return nCodeNotFound;
+
+    lookupStep(t->head, key, NULL, &closestOut, &parentOut);
+
+    if (memcmp(closestOut->key, key, t->keySize))
+        return nCodeNotFound;
+
+    lookupStep(t->head, parentOut->key, NULL, &parentOut2, &grandParentOut);
+
+    if (parentOut == closestOut) {
+        if (parentOut->l == closestOut)
+            parentOut->l = NULL;
+        else
+            parentOut->r = NULL;
+
+        if (closestOut == t->head) {
+            if (closestOut->l)
+                t->head = closestOut->l;
+            else
+                t->head = closestOut->r;
+            freeNode(closestOut);
+        } else
+            reduceLink(t->head, closestOut, key);
+    } else {
+        linkSwap(t, closestOut, parentOut, grandParentOut);
+        reduceLink(t->head, parentOut, key);
+    }
+
+    t->numElems--;
     return nCodeSuccess;
 }
 
